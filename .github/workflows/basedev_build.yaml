@@ -42,7 +42,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}.{{minor}}.{{patch}}
             type=semver,pattern={{major}}
-            type=match,pattern=basedev/v(\d.\d.\d)
+            type=match,pattern=basedev/v(\d.\d.\d),group=1
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
