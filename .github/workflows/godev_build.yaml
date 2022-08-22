@@ -40,7 +40,7 @@ jobs:
 
       - name: Docker meta
         id: meta
-        if: github.branch != 'main'
+        if: github.branch == 'main'
         uses: docker/metadata-action@v4
         with:
           images: |
@@ -57,6 +57,7 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Build Test
+        if: github.branch != 'main'
         uses: docker/build-push-action@v3
         with:
           context: ./godev/
