@@ -40,6 +40,7 @@ jobs:
 
       - name: Docker meta
         id: meta
+        if: github.branch != 'main'
         uses: docker/metadata-action@v4
         with:
           images: |
@@ -64,11 +65,12 @@ jobs:
           tags: ${{ env.TEST_TAG }}
 
       - name: Test
+        if: github.branch != 'main'
         run: |
           docker run --rm ${{ env.TEST_TAG }}
 
       - name: Build and push
-        if: github.event_name != 'pull_request'
+        if: github.branch == 'main' || contains(github.ref_name, 'godev/v')
         uses: docker/build-push-action@v3
         with:
           context: ./godev/
