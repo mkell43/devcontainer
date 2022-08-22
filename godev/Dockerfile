@@ -61,8 +61,7 @@ FROM qmcgaw/binpot:kubectx-${KUBECTX_VERSION} AS kubectx
 FROM qmcgaw/binpot:kubens-${KUBENS_VERSION} AS kubens
 FROM qmcgaw/binpot:helm-${HELM_VERSION} AS helm
 
-# FROM qmcgaw/basedevcontainer:${BASEDEV_VERSION}-UBUNTU
-FROM mkell43/basedev
+FROM mkell43/basedev:latest
 ARG CREATED
 ARG COMMIT
 ARG VERSION=local
@@ -70,7 +69,7 @@ LABEL \
   org.opencontainers.image.authors="mkell43" \
   org.opencontainers.image.created=$CREATED \
   org.opencontainers.image.version=$VERSION \
-  org.opencontainers.image.revision=$COMMIT \
+  org.opencontainers.image.revision=$REVISION \
   org.opencontainers.image.url="https://github.com/mkell43/devcontainer/godev" \
   org.opencontainers.image.documentation="https://github.com/mkell43/devcontainer/godev" \
   org.opencontainers.image.source="https://github.com/mkell43/devcontainer/godev" \
