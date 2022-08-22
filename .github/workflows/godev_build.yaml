@@ -1,0 +1,82 @@
+name: Godev:Build
+
+on:
+  push:
+    branches:
+      - "main"
+    tags:
+      - "v*.*.*"
+    paths:
+      - "godev/**"
+      - ".github/godev_build.yaml"
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - "godev/**"
+      - ".github/godev_build.yaml"
+  workflow_dispatch:
+
+env:
+  PLATFORMS: linux/amd64,linux/arm64
+  TEST_TAG: mkell43/godev:test
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        arch: [linux/amd64, linux/arm64]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Docker meta
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/godev
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+            type=ref,event=pr
+            type=match,pattern=godev/v(\d.\d.\d),group=1
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build Test
+        uses: docker/build-push-action@v3
+        with:
+          context: ./godev/
+          platforms: ${{ matrix.arch }}
+          load: true
+          tags: ${{ env.TEST_TAG }}
+
+      - name: Test
+        run: |
+          docker run --rm ${{ env.TEST_TAG }}
+
+      - name: Build and push
+        if: github.event_name != 'pull_request'
+        uses: docker/build-push-action@v3
+        with:
+          context: ./godev/
+          file: ./godev/Dockerfile
+          platforms: ${{ matrix.arch }}
+          builder: ${{ steps.buildx.outputs.name }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/godev:buildcache
+          cache-to: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/godev:buildcache,mode=max
