@@ -6,9 +6,13 @@ on:
       - "main"
     tags:
       - "v*.*.*"
+    paths:
+      - "basedev/**"
   pull_request:
     branches:
       - "main"
+    paths:
+      - "basedev/**"
 
 jobs:
   build:
@@ -37,6 +41,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=semver,pattern={{major}}.{{minor}}.{{patch}}
             type=semver,pattern={{major}}
+            type=match,pattern=basedev/v(\d.\d.\d)
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
