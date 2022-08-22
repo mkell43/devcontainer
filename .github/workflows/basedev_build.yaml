@@ -21,7 +21,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: .github/build.yaml
+      - uses: /.github/workflows/build.yaml
         with:
           container: basedev
 # jobs:
