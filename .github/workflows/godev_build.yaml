@@ -34,8 +34,10 @@ jobs:
       - name: Is Release
         id: is-release
         run: |
-          if [[ ${{ github.ref_name }} =~ ^release\/godev\/v\d.\d.\d$ ]]; then
+          if echo "${{ github.ref_name }}" =~ grep -P -q "^release\/godev\/v\d.\d.\d$"; then
             echo ::set-output name=release::true
+          else
+            echo ::set-output name=release::false
           fi
 
       - name: Login to Docker Hub
@@ -47,7 +49,6 @@ jobs:
 
       - name: Docker meta
         id: meta
-        # if: github.branch == 'main'
         if: steps.is-release.outputs.release == 'true'
         uses: docker/metadata-action@v4
         with:
@@ -64,22 +65,21 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
-      # - name: Build Test
-      #   if: github.branch != 'main'
-      #   uses: docker/build-push-action@v3
-      #   with:
-      #     context: ./godev/
-      #     platforms: ${{ matrix.arch }}
-      #     load: true
-      #     tags: ${{ env.TEST_TAG }}
+      - name: Build Test
+        if: github.branch != 'main' && steps.is-release.outputs.release == 'false'
+        uses: docker/build-push-action@v3
+        with:
+          context: ./godev/
+          platforms: ${{ matrix.arch }}
+          load: true
+          tags: ${{ env.TEST_TAG }}
 
-      # - name: Test
-      #   if: github.branch != 'main'
-      #   run: |
-      #     docker run --rm ${{ env.TEST_TAG }}
+      - name: Test
+        if: github.branch != 'main' && steps.is-release.outputs.release == 'false'
+        run: |
+          docker run --rm ${{ env.TEST_TAG }}
 
       - name: Build and push
-        # if: github.branch == 'main' || contains(github.ref_name, 'godev/v')
         if: github.branch == 'main' || steps.is-release.outputs.release == 'true'
         uses: docker/build-push-action@v3
         with:
