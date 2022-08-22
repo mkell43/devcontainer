@@ -17,6 +17,10 @@ on:
       - ".github/godev_build.yaml"
   workflow_dispatch:
 
+env:
+  PLATFORMS: linux/amd64,linux/arm64
+  TEST_TAG: mkell43/godev:test
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -48,12 +52,24 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
 
+      - name: Build and export to Docker
+        uses: docker/build-push-action@v3
+        with:
+          context: ./godev/
+          platforms: ${{ env.PLATFORMS }}
+          load: true
+          tags: ${{ env.TEST_TAG }}
+
+      - name: Test
+        run: |
+          docker run --rm ${{ env.TEST_TAG }}
+
       - name: Build and push
         uses: docker/build-push-action@v3
         with:
           context: ./godev/
           file: ./godev/Dockerfile
-          platforms: linux/amd64,linux/arm64
+          platforms: ${{ env.PLATFORMS }}
           builder: ${{ steps.buildx.outputs.name }}
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
